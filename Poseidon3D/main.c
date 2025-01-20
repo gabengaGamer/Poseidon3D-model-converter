@@ -12,81 +12,101 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "poseidon.h"
 
-void ReadP3DHeader(FILE *file, struct P3DHeader *header)
+void ReadHeader(FILE *file, struct P3DHeader *p3dheader, struct WVRHeader *wvrheader)
 {
-    fread(&header->Signature, sizeof(header->Signature), 1, file);
+    fread(&p3dheader->Signature, sizeof(p3dheader->Signature), 1, file);
 
-    switch (header->Signature) 
+    switch (p3dheader->Signature) 
     {
         case SP3X_SIGNATURE:    
-            fread(&header->MajorVersion, sizeof(header->MajorVersion), 1, file);
-            if (header->MajorVersion != MAJOR_VERSION) //In fact, this makes no sense, since the program successfully read the signature...
+            fread(&p3dheader->MajorVersion, sizeof(p3dheader->MajorVersion), 1, file);
+            if (p3dheader->MajorVersion != MAJOR_VERSION) //In fact, this makes no sense, since the program successfully read the signature...
             {
-                fprintf(stderr, "Alert: Wrong Major version! (0x%X instead of 0x1C).\n", header->MajorVersion);
+                fprintf(stderr, "Alert: Wrong Major version! (0x%X instead of 0x1C).\n", p3dheader->MajorVersion);
                 exit(1);
             }
-            fread(&header->MinorVersion, sizeof(header->MinorVersion), 1, file);
-            if (header->MinorVersion != MINOR_VERSION) //In fact, this makes no sense, since the program successfully read the signature... 
+            fread(&p3dheader->MinorVersion, sizeof(p3dheader->MinorVersion), 1, file);
+            if (p3dheader->MinorVersion != MINOR_VERSION) //In fact, this makes no sense, since the program successfully read the signature... 
             {
-                fprintf(stderr, "Alert: Wrong Minor version! (0x%X instead of 0x99).\n", header->MinorVersion);
+                fprintf(stderr, "Alert: Wrong Minor version! (0x%X instead of 0x99).\n", p3dheader->MinorVersion);
                 exit(1);
             }
             #ifdef _DEBUG
-            printf("Debug: Signature: 0x%X\n",   header->Signature);
-            printf("Debug: Major version: %d\n", header->MajorVersion);
-            printf("Debug: Minor version: %d\n", header->MinorVersion);
+            printf("Debug: Signature: 0x%X\n",   p3dheader->Signature);
+            printf("Debug: Major version: %d\n", p3dheader->MajorVersion);
+            printf("Debug: Minor version: %d\n", p3dheader->MinorVersion);
             #endif
             break;
         case SP3D_SIGNATURE:
             #ifdef _DEBUG
-            printf("Debug: Signature: 0x%X\n", header->Signature);
+            printf("Debug: Signature: 0x%X\n", p3dheader->Signature);
             #endif
             break;
+        case WVR1_SIGNATURE:
+            fread(&wvrheader->Xsize, sizeof(wvrheader->Xsize), 1, file);
+            if (wvrheader->Xsize != 128) //In fact, this makes no sense, since the program successfully read the signature...
+            {
+                fprintf(stderr, "Alert: Wrong Xsize value! (%X instead of 128).\n", wvrheader->Xsize);
+                exit(1);
+            }
+            fread(&wvrheader->Ysize, sizeof(wvrheader->Ysize), 1, file);
+            if (wvrheader->Ysize != 128) //In fact, this makes no sense, since the program successfully read the signature... 
+            {
+                fprintf(stderr, "Alert: Wrong Ysize value! (%X instead of 128).\n", wvrheader->Ysize);
+                exit(1);
+            }
+            #ifdef _DEBUG
+            printf("Debug: Signature: 0x%X\n", p3dheader->Signature);
+            printf("Debug: Xsize value: %d\n", wvrheader->Xsize);
+            printf("Debug: Ysize value: %d\n", wvrheader->Ysize);
+            #endif
+            break;    
         default:
-            fprintf(stderr, "Alert: Wrong signature! (0x%X).\n", header->Signature);	
+            fprintf(stderr, "Alert: Wrong signature! (0x%X).\n", p3dheader->Signature);    
             exit(1);
     }
 }
 
 //=============================================================================
 
-void ReadP3DData(FILE *file, struct P3DData *data)
+void ReadP3DData(FILE *file, struct P3DData *p3ddata)
 {
-    fread(data, sizeof(struct P3DData), 1, file);
+    fread(p3ddata, sizeof(struct P3DData), 1, file);
 
     #ifdef _DEBUG          
-    printf("Debug: nPoints: %d\n",  data->nPoints);
-    printf("Debug: nNormals: %d\n", data->nFaceNormals);
-    printf("Debug: nFaces: %d\n",   data->nFaces);
+    printf("Debug: nPoints: %d\n",  p3ddata->nPoints);
+    printf("Debug: nNormals: %d\n", p3ddata->nFaceNormals);
+    printf("Debug: nFaces: %d\n",   p3ddata->nFaces);
     #endif
 }
 
 //=============================================================================
 
-void ReadP3DPoints(FILE *file, struct P3DPoint *point, struct P3DHeader *header, int vertex_cnt)
+void ReadP3DPoints(FILE *file, struct P3DPoint *p3dpoint, struct P3DHeader *p3dheader, int vertex_cnt)
 {
     int i;
     
-    switch (header->Signature) 
+    switch (p3dheader->Signature) 
     {
         case SP3X_SIGNATURE:   
             fseek(file, 4, SEEK_CUR); //Skip unused data
-            fread(point, sizeof(struct P3DPoint), vertex_cnt, file);
+            fread(p3dpoint, sizeof(struct P3DPoint), vertex_cnt, file);
             #ifdef _DEBUG
             for (i = 0; i < vertex_cnt; i++) 
             {
-                printf("Debug: Point [%d]: Position=(%f, %f, %f)\n", i, point[i].position.XYZ[0], point[i].position.XYZ[1], point[i].position.XYZ[2]);
+                printf("Debug: Point [%d]: Position=(%f, %f, %f)\n", i, p3dpoint[i].position.XYZ[0], p3dpoint[i].position.XYZ[1], p3dpoint[i].position.XYZ[2]);
             }
             #endif
             break;
         case SP3D_SIGNATURE:
             for (i = 0; i < vertex_cnt; i++)
             {
-                fread(&point[i].position, sizeof(point[i].position), 1, file);
+                fread(&p3dpoint[i].position, sizeof(p3dpoint[i].position), 1, file);
                 #ifdef _DEBUG
-                printf("Debug: Point [%d]: Position=(%f, %f, %f)\n", i, point[i].position.XYZ[0], point[i].position.XYZ[1], point[i].position.XYZ[2]);
+                printf("Debug: Point [%d]: Position=(%f, %f, %f)\n", i, p3dpoint[i].position.XYZ[0], p3dpoint[i].position.XYZ[1], p3dpoint[i].position.XYZ[2]);
                 #endif
             }      
             break;
@@ -97,58 +117,58 @@ void ReadP3DPoints(FILE *file, struct P3DPoint *point, struct P3DHeader *header,
 
 //=============================================================================
 
-void ReadP3DFaceNormals(FILE *file, struct P3DTriplet *triplet, int fnormals_cnt)
+void ReadP3DFaceNormals(FILE *file, struct P3DTriplet *p3dtriplet, int fnormals_cnt)
 {
     #ifdef _DEBUG
     int i;  
     #endif    
 
-    fread(triplet, sizeof(struct P3DTriplet), fnormals_cnt, file);
+    fread(p3dtriplet, sizeof(struct P3DTriplet), fnormals_cnt, file);
 
     #ifdef _DEBUG
     for (i = 0; i < fnormals_cnt; i++) 
     {
-        printf("Debug: Triplet [%d]: Position=(%f, %f, %f)\n", i, triplet[i].XYZ[0], triplet[i].XYZ[1], triplet[i].XYZ[2]);
+        printf("Debug: Triplet [%d]: Position=(%f, %f, %f)\n", i, p3dtriplet[i].XYZ[0], p3dtriplet[i].XYZ[1], p3dtriplet[i].XYZ[2]);
     }
     #endif
 }
 
 //=============================================================================
 
-void ReadP3DLodFaces(FILE *file, struct P3DLodFace *lodFace, struct P3DHeader *header, int lodfaces_cnt)
+void ReadP3DLodFaces(FILE *file, struct P3DLodFace *p3dlodface, struct P3DHeader *p3dheader, int lodfaces_cnt)
 {
     int i;
 
     for (i = 0; i < lodfaces_cnt; i++) 
     {
         int j;
-        fread(&lodFace[i].TextureName, sizeof(lodFace[i].TextureName), 1, file);
-        fread(&lodFace[i].FaceType, sizeof(lodFace[i].FaceType), 1, file);
+        fread(&p3dlodface[i].TextureName, sizeof(p3dlodface[i].TextureName), 1, file);
+        fread(&p3dlodface[i].FaceType, sizeof(p3dlodface[i].FaceType), 1, file);
 
         for (j = 0; j < 4; j++) 
         {
-            fread(&lodFace[i].P3DVertexTables[j], sizeof(struct P3DVertexTable), 1, file);
+            fread(&p3dlodface[i].P3DVertexTables[j], sizeof(struct P3DVertexTable), 1, file);
         }
-        if (header->Signature != SP3D_SIGNATURE)
+        if (p3dheader->Signature != SP3D_SIGNATURE)
         {
-            fread(&lodFace[i].FaceFlags, sizeof(lodFace[i].FaceFlags), 1, file);
-			#ifdef _DEBUG
-            printf("Debug: LodFace [%d]: TextureName=%s, FaceType=%d, FaceFlags=%d\n", i, lodFace[i].TextureName, lodFace[i].FaceType, lodFace[i].FaceFlags);
-			#endif
-		}
-		#ifdef _DEBUG
-		else
-		{
-		   printf("Debug: LodFace [%d]: TextureName=%s, FaceType=%d\n", i, lodFace[i].TextureName, lodFace[i].FaceType);	
-		}
+            fread(&p3dlodface[i].FaceFlags, sizeof(p3dlodface[i].FaceFlags), 1, file);
+            #ifdef _DEBUG
+            printf("Debug: LodFace [%d]: TextureName=%s, FaceType=%d, FaceFlags=%d\n", i, p3dlodface[i].TextureName, p3dlodface[i].FaceType, p3dlodface[i].FaceFlags);
+            #endif
+        }
+        #ifdef _DEBUG
+        else
+        {
+           printf("Debug: LodFace [%d]: TextureName=%s, FaceType=%d\n", i, p3dlodface[i].TextureName, p3dlodface[i].FaceType);    
+        }
         for (j = 0; j < 4; j++) 
         {
-            printf("  VertexTable %d: PointsIndex=%d, NormalsIndex=%d, U=%f, V=%f\n",
+            printf("  VertexTable [%d]: PointsIndex=%d, NormalsIndex=%d, U=%f, V=%f\n",
                    j,
-                   lodFace[i].P3DVertexTables[j].PointsIndex,
-                   lodFace[i].P3DVertexTables[j].NormalsIndex,
-                   lodFace[i].P3DVertexTables[j].U,
-                   lodFace[i].P3DVertexTables[j].V);
+                   p3dlodface[i].P3DVertexTables[j].PointsIndex,
+                   p3dlodface[i].P3DVertexTables[j].NormalsIndex,
+                   p3dlodface[i].P3DVertexTables[j].U,
+                   p3dlodface[i].P3DVertexTables[j].V);
         }
         #endif
     }
@@ -156,7 +176,7 @@ void ReadP3DLodFaces(FILE *file, struct P3DLodFace *lodFace, struct P3DHeader *h
 
 //=================================Optional===================================
 
-void ReadP3DSupplement(FILE *file, struct P3DSupplement *supply) //Optional block of code, but I still prefer to handle it.
+void ReadP3DSupplement(FILE *file, struct P3DSupplement *p3dsupply) //Optional block of code, but I still prefer to handle it.
 {
     #ifdef _DEBUG
     int i;  
@@ -164,39 +184,39 @@ void ReadP3DSupplement(FILE *file, struct P3DSupplement *supply) //Optional bloc
     int totalBools;
     int totalIndexes;
 
-    fread(&supply->Signature, sizeof(int), 1, file);
-    if (supply->Signature != SS3D_SIGNATURE)
+    fread(&p3dsupply->Signature, sizeof(int), 1, file);
+    if (p3dsupply->Signature != SS3D_SIGNATURE)
     {
-        fprintf(stderr, "Alert: Wrong signature! (0x%X instead of 'SS3D').\n", supply->Signature);
+        fprintf(stderr, "Alert: Wrong signature! (0x%X instead of 'SS3D').\n", p3dsupply->Signature);
         exit(1);
     }
 
-    fread(&supply->nPoints, sizeof(int), 1, file);
-    fread(&supply->nFaces, sizeof(int), 1, file);
-    fread(&supply->nNormals, sizeof(int), 1, file);
-    fread(&supply->nBytes, sizeof(int), 1, file);
+    fread(&p3dsupply->nPoints, sizeof(int), 1, file);
+    fread(&p3dsupply->nFaces, sizeof(int), 1, file);
+    fread(&p3dsupply->nNormals, sizeof(int), 1, file);
+    fread(&p3dsupply->nBytes, sizeof(int), 1, file);
 
-    totalBools = supply->nPoints + supply->nFaces + supply->nNormals; //Check poseidon.h !!!
-    supply->TinyBools = (unsigned char *)malloc(totalBools * sizeof(unsigned char));
-    fread(supply->TinyBools, sizeof(unsigned char), totalBools, file);
+    totalBools = p3dsupply->nPoints + p3dsupply->nFaces + p3dsupply->nNormals; //Check poseidon.h !!!
+    p3dsupply->TinyBools = (unsigned char *)malloc(totalBools * sizeof(unsigned char));
+    fread(p3dsupply->TinyBools, sizeof(unsigned char), totalBools, file);
 
-    totalIndexes = supply->nBytes / 4; //Check poseidon.h !!!
-    supply->Indexes = (int *)malloc(totalIndexes * sizeof(int));
-    fread(supply->Indexes, sizeof(int), totalIndexes, file);
+    totalIndexes = p3dsupply->nBytes / 4; //Check poseidon.h !!!
+    p3dsupply->Indexes = (int *)malloc(totalIndexes * sizeof(int));
+    fread(p3dsupply->Indexes, sizeof(int), totalIndexes, file);
 
     #ifdef _DEBUG
-    printf("Debug: Signature: 0x%X\n", supply->Signature);
-    printf("Debug: nPoints: %d\n",     supply->nPoints);
-    printf("Debug: nFaces: %d\n",      supply->nFaces);
-    printf("Debug: nNormals: %d\n",    supply->nNormals);
-    printf("Debug: nBytes: %d\n",      supply->nBytes);
+    printf("Debug: Signature: 0x%X\n", p3dsupply->Signature);
+    printf("Debug: nPoints: %d\n",     p3dsupply->nPoints);
+    printf("Debug: nFaces: %d\n",      p3dsupply->nFaces);
+    printf("Debug: nNormals: %d\n",    p3dsupply->nNormals);
+    printf("Debug: nBytes: %d\n",      p3dsupply->nBytes);
     for (i = 0; i < totalBools; i++)
     {
-        printf("Debug: TinyBools[%d]: %d\n", i, supply->TinyBools[i]);
+        printf("Debug: TinyBools[%d]: %d\n", i, p3dsupply->TinyBools[i]);
     }
     for (i = 0; i < totalIndexes; i++)
     {
-        printf("Debug: Indexes[%d]: %d\n", i, supply->Indexes[i]);
+        printf("Debug: Indexes[%d]: %d\n", i, p3dsupply->Indexes[i]);
     }
     #endif
 }
@@ -249,14 +269,104 @@ void WriteOBJFile(FILE *f_out, struct P3DPoint *points, int nPoints, struct P3DT
 
 //=============================================================================
 
-void UnloadData(struct P3DPoint *point, struct P3DTriplet *triplet, struct P3DLodFace *lodFace, struct P3DSupplement supply)
+void UnloadData(struct P3DPoint *p3dpoint, struct P3DTriplet *p3dtriplet, struct P3DLodFace *p3dlodface, struct P3DSupplement p3dsupply, struct WVRModel *wvrmodel)
 {
-    if (point) free(point);
-    if (triplet) free(triplet);
-    if (lodFace) free(lodFace);
+    if (p3dpoint) free(p3dpoint);
+    if (p3dtriplet) free(p3dtriplet);
+    if (p3dlodface) free(p3dlodface);
+    
+    if (wvrmodel) free(wvrmodel);
 
-    if (supply.TinyBools) free(supply.TinyBools);
-    if (supply.Indexes) free(supply.Indexes);
+    if (p3dsupply.TinyBools) free(p3dsupply.TinyBools);
+    if (p3dsupply.Indexes) free(p3dsupply.Indexes);
+}
+
+//=============================================================================
+
+void ReadWVRTexture(FILE *file, struct WVRTexture *wvrtexture)
+{
+    int i;
+    fread(wvrtexture->Elevations, sizeof(wvrtexture->Elevations), 1, file);
+    fread(wvrtexture->TextureIndex, sizeof(wvrtexture->TextureIndex), 1, file);
+    fread(wvrtexture->TextureName, sizeof(wvrtexture->TextureName), 1, file);
+
+#ifdef _DEBUG
+    for (i = 0; i < 256; i++)
+    {
+        printf("Debug: Texture[%d]: %s\n", i, wvrtexture->TextureName[i]);
+    }
+#endif    
+}
+
+//=============================================================================
+
+void ReadWVRModels(FILE *file, struct WVRModel *wvrmodel)
+{
+    int i;
+    fread(wvrmodel, sizeof(struct WVRModel), 2233, file);
+
+#ifdef _DEBUG
+    for (i = 0; i < 2233; i++)
+    {
+        printf("Debug: Model[%d]: Position=(%f, %f, %f), Heading=%f, ModelName=%s\n",
+               i,
+               wvrmodel[i].position.XYZ[0], wvrmodel[i].position.XYZ[1], wvrmodel[i].position.XYZ[2],
+               wvrmodel[i].Heading,
+               wvrmodel[i].ModelName);
+    }
+#endif
+   //0x34E4C
+}
+
+//=============================================================================
+
+void ReadWVRNet(FILE *file, struct WVRNet *wvrnet, struct WVRSubNet *wvrsubnet)
+{
+    #ifdef _DEBUG
+    int nNets;
+    int nSubNets;
+    #endif
+
+    while (1)
+    {
+        fread(&wvrnet->NetHeader, sizeof(struct WVRNetHeader), 1, file);
+
+        if (strcmp(wvrnet->NetHeader.NetName, "EndOfNets") == 0)
+        {
+            break;
+        }
+
+        #ifdef _DEBUG
+        printf("Debug: Net[%d]:\n", nNets);
+        printf("  Texture: %s\n", wvrnet->NetHeader.NetName);
+        printf("  Type: %ld\n", wvrnet->NetHeader.Type);
+        printf("  Position: (%f, %f, %f)\n", wvrnet->NetHeader.position.XYZ[0], wvrnet->NetHeader.position.XYZ[1], wvrnet->NetHeader.position.XYZ[2]);
+        printf("  Scale: %f\n", wvrnet->NetHeader.Scale);
+        #endif
+
+        while (1)
+        {
+            fread(&wvrsubnet, sizeof(struct WVRSubNet), 1, file);
+
+            if (wvrsubnet->X == 0.0 && wvrsubnet->Y == 0.0)
+            {
+                break;
+            }
+
+            #ifdef _DEBUG
+            printf("    SubNet[%d]: X=%f, Y=%f\n", nSubNets, wvrsubnet->X, wvrsubnet->Y);
+            printf("      Position: (%f, %f, %f)\n", 
+                          wvrsubnet->OptionalData.position.XYZ[0],
+                          wvrsubnet->OptionalData.position.XYZ[1],
+                          wvrsubnet->OptionalData.position.XYZ[2]);
+                          nSubNets++;
+            #endif
+        }
+        #ifdef _DEBUG
+        nSubNets = 0;
+        nNets++;
+        #endif
+    }
 }
 
 //=============================================================================
@@ -269,13 +379,20 @@ int main(int argc, char *argv[])
     FILE *f_in;
     FILE *f_out;
 
-    struct P3DHeader     header;
-    struct P3DData       data;
-    struct P3DSupplement supply;
+    struct P3DHeader     p3dheader;
+    struct P3DData       p3ddata;
+    struct P3DSupplement p3dsupply;
 
-    struct P3DPoint   *point;
-    struct P3DTriplet *triplet;
-    struct P3DLodFace *lodFace;
+    struct P3DPoint   *p3dpoint;
+    struct P3DTriplet *p3dtriplet;
+    struct P3DLodFace *p3dlodface;
+    
+    struct WVRHeader    wvrheader;
+    struct WVRTexture   wvrtexture;
+    struct WVRNet       wvrnet;
+    struct WVRSubNet    wvrsubnet;
+    
+    struct WVRModel *wvrmodel;
     
     input_file = argv[1];
     output_file = "output.obj";
@@ -301,25 +418,38 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    ReadP3DHeader(f_in, &header);
-    ReadP3DData(f_in, &data);
-    
-    point = (struct P3DPoint *)malloc(data.nPoints * sizeof(struct P3DPoint));
-    triplet = (struct P3DTriplet *)malloc(data.nFaceNormals * sizeof(struct P3DTriplet));
-    lodFace = (struct P3DLodFace *)malloc(data.nFaces * sizeof(struct P3DLodFace));
+    ReadHeader(f_in, &p3dheader, &wvrheader);
 
-    ReadP3DPoints(f_in, point, &header, data.nPoints);    
-    ReadP3DFaceNormals(f_in, triplet, data.nFaceNormals);
-    ReadP3DLodFaces(f_in, lodFace, &header, data.nFaces);  
-    
-    if (header.Signature == SP3D_SIGNATURE || header.Signature == SP3X_SIGNATURE)
+    if (p3dheader.Signature != WVR1_SIGNATURE )
     {
-        ReadP3DSupplement(f_in, &supply); 
+        ReadP3DData(f_in, &p3ddata);
+    
+        p3dpoint = (struct P3DPoint *)malloc(p3ddata.nPoints * sizeof(struct P3DPoint));
+        p3dtriplet = (struct P3DTriplet *)malloc(p3ddata.nFaceNormals * sizeof(struct P3DTriplet));
+        p3dlodface = (struct P3DLodFace *)malloc(p3ddata.nFaces * sizeof(struct P3DLodFace));
+
+        ReadP3DPoints(f_in, p3dpoint, &p3dheader, p3ddata.nPoints);    
+        ReadP3DFaceNormals(f_in, p3dtriplet, p3ddata.nFaceNormals);
+        ReadP3DLodFaces(f_in, p3dlodface, &p3dheader, p3ddata.nFaces);  
+    
+        if (p3dheader.Signature == SP3D_SIGNATURE || p3dheader.Signature == SP3X_SIGNATURE)
+        {
+            ReadP3DSupplement(f_in, &p3dsupply); 
+        }
+        
+        WriteOBJFile(f_out, p3dpoint, p3ddata.nPoints, p3dtriplet, p3ddata.nFaceNormals, p3dlodface, p3ddata.nFaces);
+    }
+    else
+    {
+        ReadWVRTexture(f_in, &wvrtexture);
+    
+        wvrmodel = (struct WVRModel *)malloc(2233 * sizeof(struct WVRModel));
+    
+        ReadWVRModels(f_in, wvrmodel);
+        ReadWVRNet(f_in, &wvrnet, &wvrsubnet);    
     }
     
-    WriteOBJFile(f_out, point, data.nPoints, triplet, data.nFaceNormals, lodFace, data.nFaces);
-
-    UnloadData(point, triplet, lodFace, supply);
+    UnloadData(p3dpoint, p3dtriplet, p3dlodface, p3dsupply, wvrmodel);
     
     fclose(f_in);
     fclose(f_out);

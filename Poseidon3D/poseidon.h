@@ -11,6 +11,8 @@
 #define MAJOR_VERSION  0x0000001C
 #define MINOR_VERSION  0x00000099
 
+#define WVR1_SIGNATURE 0x52565731
+
 //=============================================================================
 // FACE FLAGS
 //=============================================================================
@@ -42,7 +44,7 @@
 
     
 //=============================================================================
-// STRUCTURIZING
+// P3D - 3D model format
 //=============================================================================
 
 struct P3DHeader
@@ -65,13 +67,13 @@ struct P3DData
 
 struct P3DSupplement //Optional
 {
-    int Signature;            //Always "SS3D" and only for "SP3X"
-    int nPoints;              //Identically to P3DData "nPoints"
-    int nFaces;               //Identically to P3DData "nFaces"
-    int nNormals;             //Identically to P3DData "nFaceNormals"
-    int nBytes;               //Always "0"
-    unsigned char *TinyBools; //Formula: nPoints+nFaces+nNormals | usualy contain 0 or 1 values
-    int *Indexes;             //Formula: nBytes/4
+    int Signature;   //Always "SS3D" and only for "SP3X"
+    int nPoints;     //Identically to P3DData "nPoints"
+    int nFaces;      //Identically to P3DData "nFaces"
+    int nNormals;    //Identically to P3DData "nFaceNormals"
+    int nBytes;      //Always "0"
+    char *TinyBools; //Formula: nPoints+nFaces+nNormals | usualy contain 0 or 1 values
+    int *Indexes;    //Formula: nBytes/4
 };
 
 //=============================================================================
@@ -85,7 +87,7 @@ struct P3DTriplet
 
 struct P3DPoint
 {
-	struct P3DTriplet position;
+    struct P3DTriplet position;
     //float XYZ[3];
     int   PointFlags; //-> check FACE FLAGS
 };
@@ -110,5 +112,82 @@ struct P3DLodFace
 };
 
 //=============================================================================
+// WRP/WVR - world map format
+//=============================================================================
+
+struct WVRHeader
+{
+    int Signature; //"1WVR"
+    int Xsize;     //(=128) cell dimension (wvr4 is 256)
+    int Ysize;     //(=128) cell dimension
+};
+
+//=============================================================================
+
+struct WVRTexture
+{
+    short Elevations[128][128];   // in centimetres. see 4WVR documentation
+    short TextureIndex[128][128]; // Each 'index' refers to a filename below. Range 0..255 4WVR is 1..511
+    char TextureName[256][32];    //"LandText\\mo.pac\0LandText.pi.pac.........."
+};
+
+//=============================================================================
+
+struct WVRModel //64 byte structure
+{
+    struct     P3DTriplet position; // in gridsize scale. eg *50.0 meters
+    float      Heading;             // in Cartesian degrees NOT polar radians 
+    char       ModelName[48];       // "Data3d\Smrk.p3d (WVR4 is 76)
+};
+
+//=============================================================================
+
+struct WVRNetHeader
+{
+    char     NetName[24];         //"LandText\Silnice.pac" null termed
+    long     Unknown;             //0x00cd9100 or 0x00d4c600
+    long     Unknown1;            //0x00bfd400
+    long     Unknown2;            //0x00000047
+    long     Unknown3;            //0x00000000
+    long     Unknown4;            //0x0069fbb0;
+    long     Type;                //0,1 or 2
+    struct   P3DTriplet position; //[0.152,0.15,0.1] typical
+    float    Scale;               //3.5, 4.5 or 5.5
+};
+
+//=============================================================================
+
+struct WVRSubNet
+{
+    float X,Y;                      // Grid size of 50
+    struct
+    {
+        struct P3DTriplet position; // Very similar content to header triplet
+        float Stepping;
+        unsigned long Unknown;      // 0x0046931A
+        unsigned long Unknown1;     // 0x00980778 or 0x733760
+    } OptionalData;                 // Included only if X || Y
+};
+
+//=============================================================================
+
+struct WVRNet
+{
+    struct WVRNetHeader NetHeader;
+    struct WVRSubNet SubNets[];
+};
 
 #endif // POSEIDON_H
+
+/*
+//=============================================================================
+// GRAVEYARD
+//=============================================================================
+
+struct WVRTexture
+{
+    short **Elevations;         // in centimetres. see 4WVR documentation
+    short **TextureIndex;       // Each 'index' refers to a filename below. Range 0..255 4WVR is 1..511
+    char TextureName[256][32];    //"LandText\\mo.pac\0LandText.pi.pac.........."
+};
+*/
