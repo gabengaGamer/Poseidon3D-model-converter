@@ -46,6 +46,23 @@ void ReadHeader(FILE *file, struct RVHeader *rvh)
             printf("Debug: Signature: 0x%X\n", rvh->Signature);
             #endif
             break;
+        case ODOL_SIGNATURE:
+             fread(&rvh->Unknown, sizeof(rvh->Unknown), 1, file);
+             switch (rvh->Unknown) 
+             {
+                 case VERSION_07:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                 default:
+                     fprintf(stderr, "Alert: Unknown version! (0x%X).\n", rvh->Unknown);    
+                     exit(1);
+             }
+             break;
         case WVR1_SIGNATURE:
             fread(&rvh->Unknown, sizeof(rvh->Unknown), 1, file);
             if (rvh->Unknown != 128) //In fact, this makes no sense, since the program successfully read the signature...
@@ -64,7 +81,7 @@ void ReadHeader(FILE *file, struct RVHeader *rvh)
             printf("Debug: Xsize value: %d\n", rvh->Unknown);
             printf("Debug: Ysize value: %d\n", rvh->Unknown1);
             #endif
-            break;    
+            break;             
         default:
             fprintf(stderr, "Alert: Wrong signature! (0x%X).\n", rvh->Signature);    
             exit(1);
