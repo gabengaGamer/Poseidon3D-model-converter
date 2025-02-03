@@ -204,11 +204,11 @@ struct WVR
 
 #endif // POSEIDON_H
 
-/*
+
 //=============================================================================
 // GRAVEYARD
 //=============================================================================
-
+/*
 struct WVRTexture
 {
     short **Elevations;         // in centimetres. see 4WVR documentation

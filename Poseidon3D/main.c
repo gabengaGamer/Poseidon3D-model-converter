@@ -149,8 +149,7 @@ void ReadP3DFaceNormals(FILE *file, struct P3D *p3d)
 
 void ReadP3DLodFaces(FILE *file, struct P3D *p3d)
 {
-    int i;
-    int j;
+    int i,j;
     
     p3d->lodface = (struct P3DLodFace *)malloc(p3d->data.nFaces * sizeof(struct P3DLodFace));
 
@@ -252,8 +251,7 @@ void ReadP3DSupplement(FILE *file, struct P3D *p3d)
 
 void WriteOBJFile(FILE *f_out, struct P3D *p3d) 
 {
-    int i;
-    int j;
+    int i,j;
     int voffs = 1;
     
     for (i = 0; i < p3d->data.nPoints; i++) 
