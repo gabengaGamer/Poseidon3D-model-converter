@@ -88,9 +88,9 @@ void ReadP3DData(FILE *file, struct P3D *p3d)
 void ReadP3DPoints(FILE *file, struct P3D *p3d)
 {
     int i;
-    
+
     p3d->point = (struct P3DPoint *)malloc(p3d->data.nPoints * sizeof(struct P3DPoint));
-    
+
     switch (p3d->header.Signature)  
     {
         case SP3X_SIGNATURE:   
@@ -150,7 +150,7 @@ void ReadP3DFaceNormals(FILE *file, struct P3D *p3d)
 void ReadP3DLodFaces(FILE *file, struct P3D *p3d)
 {
     int i,j;
-    
+
     p3d->lodface = (struct P3DLodFace *)malloc(p3d->data.nFaces * sizeof(struct P3DLodFace));
 
     for (i = 0; i < p3d->data.nFaces; i++)  
@@ -189,15 +189,6 @@ void ReadP3DLodFaces(FILE *file, struct P3D *p3d)
         }
         #endif
     }
-}
-
-//=============================================================================
-
-void InitP3D(struct P3D *p3d)
-{
-    p3d->point = NULL;
-    p3d->triplet = NULL;
-    p3d->lodface = NULL;
 }
 
 //=================================Optional===================================
@@ -253,7 +244,7 @@ void WriteOBJFile(FILE *f_out, struct P3D *p3d)
 {
     int i,j;
     int voffs = 1;
-    
+
     for (i = 0; i < p3d->data.nPoints; i++) 
     {
         fprintf(f_out, "v %f %f %f\n", p3d->point[i].position.XYZ[0], 
@@ -267,7 +258,7 @@ void WriteOBJFile(FILE *f_out, struct P3D *p3d)
                                         p3d->triplet[i].XYZ[1], 
                                         p3d->triplet[i].XYZ[2]);
     }
-    
+
     for (i = 0; i < p3d->data.nFaces; i++) 
     {       
         int facetype = (p3d->lodface[i].FaceType == 3) ? 3 : 4; //Skip fourth block if we don't need it. Check FaceType!!!     
@@ -277,7 +268,7 @@ void WriteOBJFile(FILE *f_out, struct P3D *p3d)
                                          p3d->lodface[i].p3dvertextable[j].V);
         }
     }
-    
+
     for (i = 0; i < p3d->data.nFaces; i++)
     {
         int facetype = (p3d->lodface[i].FaceType == 3) ? 3 : 4; //Skip fourth block if we don't need it. Check FaceType!!!  
@@ -296,17 +287,32 @@ void WriteOBJFile(FILE *f_out, struct P3D *p3d)
 
 //=============================================================================
 
+void InitData(struct P3D *p3d, struct WVR *wvr)
+{
+    p3d->point = NULL;
+    p3d->triplet = NULL;
+    p3d->lodface = NULL;
+
+    p3d->supply.TinyBools = NULL;
+    p3d->supply.Indexes = NULL;
+
+    wvr->model = NULL;
+    wvr->net.subnet = NULL;
+}
+
+//=============================================================================
+
 void UnloadData(struct P3D *p3d, struct WVR *wvr)
 {
-    if (p3d->point) free(p3d->point);
-    if (p3d->triplet) free(p3d->triplet);
-    if (p3d->lodface) free(p3d->lodface);
+    if (p3d->point)   { free(p3d->point); p3d->point = NULL; }
+    if (p3d->triplet) { free(p3d->triplet); p3d->triplet = NULL; }
+    if (p3d->lodface) { free(p3d->lodface); p3d->lodface = NULL; }
 
-    if (p3d->supply.TinyBools) free(p3d->supply.TinyBools);
-    if (p3d->supply.Indexes) free(p3d->supply.Indexes);
-    
-    if (wvr->model) free(wvr->model);
-    if (wvr->net.subnet) free(wvr->net.subnet);
+    if (p3d->supply.TinyBools) { free(p3d->supply.TinyBools); p3d->supply.TinyBools = NULL; }
+    if (p3d->supply.Indexes)   { free(p3d->supply.Indexes); p3d->supply.Indexes = NULL; }
+
+    if (wvr->model)      { free(wvr->model); wvr->model = NULL; }
+    if (wvr->net.subnet) { free(wvr->net.subnet); wvr->net.subnet = NULL; }
 }
 
 //=============================================================================
@@ -316,7 +322,7 @@ void ReadWVRTexture(FILE *file, struct WVR *wvr)
     #ifdef _DEBUG
     int i;  
     #endif  
-    
+
     fread(wvr->texture.Elevations, sizeof(wvr->texture.Elevations), 1, file);
     fread(wvr->texture.TextureIndex, sizeof(wvr->texture.TextureIndex), 1, file);
     fread(wvr->texture.TextureName, sizeof(wvr->texture.TextureName), 1, file);
@@ -407,13 +413,6 @@ void ReadWVRNet(FILE *file, struct WVR *wvr)
 
 //=============================================================================
 
-void InitWVR(struct WVR *wvr)
-{
-    wvr->model = NULL;
-}
-
-//=============================================================================
-
 int main(int argc, char *argv[])   
 {
     const char *input_file;
@@ -449,8 +448,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    InitP3D(&p3d);
-    InitWVR(&wvr);
+    InitData(&p3d, &wvr);
     ReadHeader(f_in, &p3d, &wvr);
 
     if (p3d.header.Signature != WVR1_SIGNATURE)
