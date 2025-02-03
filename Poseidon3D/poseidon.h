@@ -69,13 +69,13 @@ struct P3DData
 
 struct P3DSupplement //Optional
 {
-    int Signature;   //Always "SS3D" and only for "SP3X"
-    int nPoints;     //Identically to P3DData "nPoints"
-    int nFaces;      //Identically to P3DData "nFaces"
-    int nNormals;    //Identically to P3DData "nFaceNormals"
-    int nBytes;      //Always "0"
-    char *TinyBools; //Formula: nPoints+nFaces+nNormals | usualy contain 0 or 1 values
-    int *Indexes;    //Formula: nBytes/4
+    int  Signature;   //Always "SS3D" and only for "SP3X"
+    int  nPoints;     //Identically to P3DData "nPoints"
+    int  nFaces;      //Identically to P3DData "nFaces"
+    int  nNormals;    //Identically to P3DData "nFaceNormals"
+    int  nBytes;      //Always "0"
+    char *TinyBools;  //Formula: nPoints+nFaces+nNormals | usualy contain 0 or 1 values
+    int  *Indexes;    //Formula: nBytes/4
 };
 
 //=============================================================================
@@ -109,15 +109,27 @@ struct P3DLodFace
 {
     char   TextureName[32];
     int    FaceType;                          // 3 - Triangle or 4 - Quad
-    struct P3DVertexTable P3DVertexTables[4];
+    struct P3DVertexTable p3dvertextable[4];
     int    FaceFlags;                         //-> check FACE FLAGS
+};
+
+//=============================================================================
+
+struct P3D 
+{
+    struct P3DHeader     header;
+    struct P3DData       data;
+    struct P3DSupplement supply;
+    struct P3DPoint      *point;
+    struct P3DTriplet    *triplet;
+    struct P3DLodFace    *lodface;
 };
 
 //=============================================================================
 // WRP/WVR - World map format
 //=============================================================================
 
-struct WVRHeader
+struct WVRHeader //Useless ? I mean i already reads P3DHeader, so its maybe unused struct for me...
 {
     int Signature; //"1WVR"
     int Xsize;     //(=128) cell dimension (wvr4 is 256)
@@ -130,7 +142,7 @@ struct WVRTexture
 {
     short Elevations[128][128];   // in centimetres. see 4WVR documentation
     short TextureIndex[128][128]; // Each 'index' refers to a filename below. Range 0..255 4WVR is 1..511
-    char TextureName[256][32];    //"LandText\\mo.pac\0LandText.pi.pac.........."
+    char  TextureName[256][32];   //"LandText\\mo.pac\0LandText.pi.pac.........."
 };
 
 //=============================================================================
@@ -165,9 +177,9 @@ struct WVRSubNet
     struct
     {
         struct P3DTriplet position; // Very similar content to header triplet
-        float Stepping;
-        unsigned long Unknown;      // 0x0046931A
-        unsigned long Unknown1;     // 0x00980778 or 0x733760
+        float             Stepping;
+        unsigned long     Unknown;  // 0x0046931A
+        unsigned long     Unknown1; // 0x00980778 or 0x733760
     } OptionalData;                 // Included only if X || Y
 };
 
@@ -175,8 +187,19 @@ struct WVRSubNet
 
 struct WVRNet
 {
-    struct WVRNetHeader NetHeader;
-    struct WVRSubNet SubNets[];
+    struct WVRNetHeader netheader;
+    struct WVRSubNet    *subnet;
+};
+
+//=============================================================================
+
+struct WVR 
+{
+    struct WVRHeader    header;
+    struct WVRTexture   texture;
+    struct WVRNet       net;
+    struct WVRSubNet    subnet;
+    struct WVRModel     *model;
 };
 
 #endif // POSEIDON_H
