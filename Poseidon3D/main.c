@@ -304,14 +304,14 @@ void InitData(struct P3D *p3d, struct WVR *wvr)
 
 void UnloadData(struct P3D *p3d, struct WVR *wvr)
 {
-    if (p3d->point)   { free(p3d->point); p3d->point = NULL; }
+    if (p3d->point)   { free(p3d->point);   p3d->point = NULL; }
     if (p3d->triplet) { free(p3d->triplet); p3d->triplet = NULL; }
     if (p3d->lodface) { free(p3d->lodface); p3d->lodface = NULL; }
 
     if (p3d->supply.TinyBools) { free(p3d->supply.TinyBools); p3d->supply.TinyBools = NULL; }
-    if (p3d->supply.Indexes)   { free(p3d->supply.Indexes); p3d->supply.Indexes = NULL; }
+    if (p3d->supply.Indexes)   { free(p3d->supply.Indexes);   p3d->supply.Indexes = NULL; }
 
-    if (wvr->model)      { free(wvr->model); wvr->model = NULL; }
+    if (wvr->model)      { free(wvr->model);      wvr->model = NULL; }
     if (wvr->net.subnet) { free(wvr->net.subnet); wvr->net.subnet = NULL; }
 }
 
