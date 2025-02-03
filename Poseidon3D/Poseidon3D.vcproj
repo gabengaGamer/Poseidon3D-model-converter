@@ -109,14 +109,25 @@
 			<File
 				RelativePath=".\main.c">
 			</File>
+			<Filter
+				Name="module"
+				Filter="">
+				<File
+					RelativePath=".\module\poseidon.c">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
-			<File
-				RelativePath=".\poseidon.h">
-			</File>
+			<Filter
+				Name="module"
+				Filter="">
+				<File
+					RelativePath=".\module\poseidon.h">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

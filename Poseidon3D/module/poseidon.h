@@ -1,5 +1,6 @@
 #ifndef POSEIDON_H
 #define POSEIDON_H
+#include "../header.h"
 
 //=============================================================================
 // DATA SIGNS
@@ -39,23 +40,51 @@
 // PROTOTYPING
 //=============================================================================
 
+void ReadP3DData(FILE *file, struct P3D *p3d);
+
+//=============================================================================
+
+void ReadP3DPoints(FILE *file, struct P3D *p3d, struct RVHeader *rvh);
+
+//=============================================================================
+
+void ReadP3DFaceNormals(FILE *file, struct P3D *p3d);
+
+//=============================================================================
+
+void ReadP3DLodFaces(FILE *file, struct P3D *p3d, struct RVHeader *rvh);
+
+//=============================================================================
+
+void ReadP3DSupplement(FILE *file, struct P3D *p3d, struct RVHeader *rvh);
+
+//=============================================================================
+
+void ReadWVRTexture(FILE *file, struct WVR *wvr);
+
+//=============================================================================
+
+void ReadWVRModels(FILE *file, struct WVR *wvr);
+
+//=============================================================================
+
+void ReadWVRNet(FILE *file, struct WVR *wvr);
 
 //=============================================================================
 // EXTERNING
 //=============================================================================
-
     
 //=============================================================================
 // P3D - 3D model format
 //=============================================================================
-
-struct P3DHeader
+/*
+struct P3DHeader //Deprecated
 {
     int Signature;    //"SP3X" or "P3DM" or "SP3D" (demo)
     int MajorVersion; //28 (x1C)
     int MinorVersion; //0x99 (SP3X) or 0x100 (P3DM)
 };
-
+*/
 //=============================================================================
 
 struct P3DData
@@ -117,7 +146,7 @@ struct P3DLodFace
 
 struct P3D 
 {
-    struct P3DHeader     header;
+    //struct P3DHeader     header;
     struct P3DData       data;
     struct P3DSupplement supply;
     struct P3DPoint      *point;
@@ -128,14 +157,14 @@ struct P3D
 //=============================================================================
 // WRP/WVR - World map format
 //=============================================================================
-
-struct WVRHeader //Useless ? I mean i already reads P3DHeader, so its maybe unused struct for me...
+/*
+struct WVRHeader //Deprecated
 {
     int Signature; //"1WVR"
     int Xsize;     //(=128) cell dimension (wvr4 is 256)
     int Ysize;     //(=128) cell dimension
 };
-
+*/
 //=============================================================================
 
 struct WVRTexture
@@ -195,7 +224,7 @@ struct WVRNet
 
 struct WVR 
 {
-    struct WVRHeader    header;
+    //struct WVRHeader    header;
     struct WVRTexture   texture;
     struct WVRNet       net;
     struct WVRSubNet    subnet;
