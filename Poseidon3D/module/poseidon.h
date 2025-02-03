@@ -6,14 +6,6 @@
 // DATA SIGNS
 //=============================================================================
 
-#define SP3X_SIGNATURE 0x58335053
-#define SP3D_SIGNATURE 0x44335053
-#define SS3D_SIGNATURE 0x44335353
-#define MAJOR_VERSION  0x0000001C
-#define MINOR_VERSION  0x00000099
-
-#define WVR1_SIGNATURE 0x52565731
-
 #define HEIGHTMAP_SIZE 128
 
 //=============================================================================
