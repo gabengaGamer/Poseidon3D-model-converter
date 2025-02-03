@@ -5,7 +5,7 @@
 // RVHeader - Real Virtuality header (master)
 //=============================================================================
 
-struct RVHeader
+struct RVHeader //All headers should reference to RVHeader, for a better and easier code experience.
 {
     int Signature;
     int Unknown;

@@ -1,6 +1,6 @@
 //=============================================================================
 //
-//  Module:         P3DConverter - Poseidon engine 1997
+//  Module:         P3D/WVRConverter - Poseidon engine 1997
 //
 //  Credits:        https://community.bistudio.com/wiki/P3D_File_Format_-_MLOD
 //

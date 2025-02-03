@@ -78,7 +78,7 @@ void ReadWVRNet(FILE *file, struct WVR *wvr);
 // P3D - 3D model format
 //=============================================================================
 /*
-struct P3DHeader //Deprecated
+struct P3DHeader //Deprecated, see header.h
 {
     int Signature;    //"SP3X" or "P3DM" or "SP3D" (demo)
     int MajorVersion; //28 (x1C)
@@ -158,7 +158,7 @@ struct P3D
 // WRP/WVR - World map format
 //=============================================================================
 /*
-struct WVRHeader //Deprecated
+struct WVRHeader //Deprecated, see header.h
 {
     int Signature; //"1WVR"
     int Xsize;     //(=128) cell dimension (wvr4 is 256)

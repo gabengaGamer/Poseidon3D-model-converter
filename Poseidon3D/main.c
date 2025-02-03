@@ -1,6 +1,6 @@
 //=============================================================================
 //
-//  Program:        P3DConverter
+//  Program:        RVConverter
 //
 //  Credits:        https://community.bistudio.com/
 //
