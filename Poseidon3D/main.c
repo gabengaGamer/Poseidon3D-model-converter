@@ -50,7 +50,55 @@ void ReadHeader(FILE *file, struct RVHeader *rvh)
              fread(&rvh->Unknown, sizeof(rvh->Unknown), 1, file);
              switch (rvh->Unknown) 
              {
-                 case VERSION_07:
+                case VERSION_07:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                case VERSION_40:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                case VERSION_43:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                case VERSION_47:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                case VERSION_48:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                case VERSION_49:
+                     #ifdef _DEBUG
+                     printf("Debug: Signature: 0x%X\n", rvh->Signature);
+                     printf("Debug: Version: 0x%X\n", rvh->Unknown);
+                     fprintf(stderr, "Alert: INEVITABLE!\n");
+                     #endif
+                     exit(1);
+                     break;
+                case VERSION_50:
                      #ifdef _DEBUG
                      printf("Debug: Signature: 0x%X\n", rvh->Signature);
                      printf("Debug: Version: 0x%X\n", rvh->Unknown);
